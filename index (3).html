@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Coffre privé</title>
+<style>
+:root{--bg:#f4f3fb;--card:#fff;--ink:#1b1740;--mute:#625e88;--line:#ddd9f0;--acc:#6d4aff;--accink:#fff;--bad:#c0392b;--glow:rgba(109,74,255,.18);--r:16px}
+@media (prefers-color-scheme:dark){:root{--bg:#0e0b1f;--card:#1a1633;--ink:#f1eeff;--mute:#a59fcb;--line:#2c2652;--bad:#ff8a80;--glow:rgba(109,74,255,.38)}}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(900px 440px at 50% -60px,var(--glow),transparent 70%) no-repeat,var(--bg);min-height:100vh;color:var(--ink);font:16px/1.5 "Avenir Next","Segoe UI",system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+main{max-width:620px;margin:0 auto;padding:28px 18px 48px}
+h1{font-size:1.9rem;line-height:1.15;margin:0 0 8px;letter-spacing:-.02em}
+p{margin:0 0 14px;max-width:60ch}
+.mute{color:var(--mute);font-size:.92rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+button,.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 18px;background:var(--acc);color:var(--accink);cursor:pointer;min-height:46px}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.danger{background:transparent;color:var(--bad);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+input[type=password]{font:inherit;width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px}
+#err{color:var(--bad);min-height:1.4em;margin:12px 0 0;font-weight:500}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.name{min-width:0;flex:1}
+.name b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acts{display:flex;gap:8px}
+.acts button{padding:8px 12px;min-height:40px;font-size:.9rem}
+.empty{text-align:center;padding:28px 8px}
+dialog{border:0;border-radius:var(--r);padding:12px;max-width:94vw;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog img,dialog video{display:block;max-width:100%;max-height:78vh;margin:0 auto;border-radius:8px}
+dialog .bar{display:flex;justify-content:flex-end;margin-bottom:8px}
+button:hover{filter:brightness(1.1)}
+button.ghost:hover,button.danger:hover{filter:none;border-color:var(--acc)}
+#lock{text-align:center;padding-top:7vh}
+#lock h1{font-size:2.3rem}
+#lock p{margin-left:auto;margin-right:auto}
+.logo{width:72px;height:72px;margin:0 auto 22px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(145deg,#8a6cff,#5a3ae0);box-shadow:0 12px 32px rgba(109,74,255,.45)}
+.lead{font-size:1.08rem;color:var(--mute);margin-bottom:26px!important}
+#lock .card{padding:24px;box-shadow:0 18px 50px rgba(20,10,80,.14)}
+.full{width:100%;font-size:1.05rem;padding:15px 18px;min-height:52px;border-radius:12px}
+.trust{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:22px 0 0;padding:0}
+.trust li{font-size:.85rem;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.trust li::before{content:"✓ ";color:var(--acc);font-weight:700}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.tools button{flex:1;min-width:150px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <section id="lock">
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"/><rect x="9" y="10.5" width="6" height="5" rx="1"/><path d="M10.5 10.5V9a1.5 1.5 0 013 0v1.5"/></svg></div>
+    <h1>Coffre privé</h1>
+    <p class="lead">Tes photos et vidéos, chiffrées sur ton appareil. Toi seul peux les ouvrir.</p>
+    <div class="card">
+      <p id="hint" class="mute"></p>
+      <input id="pass" type="password" placeholder="Mot de passe" autocomplete="off" hidden>
+      <button id="go" class="full">Créer mon coffre</button>
+      <p id="err" role="alert"></p>
+    </div>
+    <ul class="trust"><li>Chiffrement AES-256</li><li>Aucun compte</li><li>Rien n’est envoyé sur internet</li></ul>
+    <button id="impLock" class="ghost" style="margin-top:18px">J’ai déjà une sauvegarde</button>
+  </section>
+
+  <section id="vault" hidden>
+    <header>
+      <div><h1>Mon coffre</h1><div id="stats" class="mute"></div></div>
+      <button id="lockBtn" class="ghost">Verrouiller</button>
+    </header>
+    <div class="card">
+      <input id="pick" type="file" accept="image/*,video/*" multiple hidden>
+      <button id="add">Ajouter des photos ou vidéos</button>
+      <p id="busy" class="mute" style="margin:12px 0 0" hidden></p>
+      <div class="tools"><button id="exp" class="ghost">Exporter une sauvegarde</button><button id="imp" class="ghost">Importer</button></div>
+    </div>
+    <div class="card" id="salon" style="margin-top:14px">
+      <style>#salon .row input{width:22px;height:22px;accent-color:var(--acc)}#sCode{font-weight:600}</style>
+      <b>Salon d’échange</b>
+      <p class="mute" style="margin:6px 0 12px">Échange des photos et vidéos en direct avec une personne. Les fichiers ne passent par aucun serveur.</p>
+      <button id="sNew" class="ghost">Créer un salon</button>
+      <div id="sBox" hidden>
+        <p id="sMsg" class="mute"></p>
+        <div id="ts"></div>
+        <div class="tools" id="sLink" hidden><button id="sShare">Partager le lien</button></div>
+        <p id="sCode" hidden></p>
+        <div id="sPick"></div>
+        <div id="sPeer"></div>
+        <div class="tools"><button id="sShow" hidden>Montrer mes fichiers</button><button id="sAcc" hidden disabled>Accepter l’échange</button><button id="sQuit" class="danger">Quitter le salon</button></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px"><div id="list"></div></div>
+    <p class="mute" style="margin-top:16px">Si tu perds ta passkey (ou ton mot de passe) ou si tu vides les données de ce navigateur, les fichiers sont perdus. Il n’y a pas de copie ailleurs.</p>
+  </section>
+</main>
+
+<input id="impPick" type="file" hidden>
+<dialog id="viewer"><div class="bar"><button class="ghost" id="closeV">Fermer</button></div><div id="stage"></div></dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+const enc=new TextEncoder(),dec=new TextDecoder();
+const CHUNK=4*1024*1024;
+let key=null,meta=null,forcePass=false,lockTimer=null,viewUrl=null;
+
+/* ---------- Base locale (IndexedDB) ---------- */
+const db=new Promise((ok,ko)=>{
+  const r=indexedDB.open('coffre',1);
+  r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('meta');d.createObjectStore('files',{keyPath:'id'});d.createObjectStore('blobs',{keyPath:'id'})};
+  r.onsuccess=()=>ok(r.result);r.onerror=()=>ko(r.error);
+});
+const run=async(names,mode,fn)=>{
+  const d=await db;
+  return new Promise((ok,ko)=>{
+    const t=d.transaction(names,mode);let r;
+    try{r=fn(n=>t.objectStore(n))}catch(e){return ko(e)}
+    t.oncomplete=()=>ok(r&&r.result);t.onerror=t.onabort=()=>ko(t.error);
+  });
+};
+
+/* ---------- Chiffrement ---------- */
+const rnd=n=>crypto.getRandomValues(new Uint8Array(n));
+async function keyFromPrf(raw){
+  const base=await crypto.subtle.importKey('raw',raw,'HKDF',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt:new Uint8Array(32),info:enc.encode('coffre-v1')},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function keyFromPass(pass,salt){
+  const base=await crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:600000},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function seal(data){const iv=rnd(12);return{iv,ct:await crypto.subtle.encrypt({name:'AES-GCM',iv},key,data)}}
+const unseal=o=>crypto.subtle.decrypt({name:'AES-GCM',iv:o.iv},key,o.ct);
+
+/* ---------- Passkey ---------- */
+async function createPasskey(salt){
+  const c=await navigator.credentials.create({publicKey:{
+    rp:{name:'Coffre privé'},
+    user:{id:rnd(16),name:'coffre',displayName:'Mon coffre'},
+    challenge:rnd(32),
+    pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+    authenticatorSelection:{residentKey:'preferred',userVerification:'required'},
+    extensions:{prf:{}}
+  }});
+  if(!c.getClientExtensionResults().prf?.enabled)return null;
+  return c.rawId;
+}
+async function prfSecret(m){
+  const a=await navigator.credentials.get({publicKey:{
+    challenge:rnd(32),userVerification:'required',
+    allowCredentials:[{type:'public-key',id:m.credId}],
+    extensions:{prf:{eval:{first:m.salt}}}
+  }});
+  const r=a.getClientExtensionResults().prf?.results?.first;
+  if(!r)throw new Error('Cette passkey ne permet pas de chiffrer le coffre.');
+  return r;
+}
+
+/* ---------- Écran de verrouillage ---------- */
+function paintLock(){
+  const pass=forcePass||(meta&&meta.mode==='pass');
+  $('#pass').hidden=!pass;
+  $('#impLock').hidden=!!meta;
+  $('#go').textContent=meta?'Déverrouiller':(forcePass?'Créer avec un mot de passe':'Créer mon coffre');
+  $('#hint').textContent=meta
+    ?(pass?'Entre ton mot de passe pour ouvrir le coffre.':'Valide avec Face ID, Touch ID ou le code de ton appareil.')
+    :(forcePass?'Choisis un mot de passe long (10 caractères minimum). Garde-le précieusement.':'Ton coffre s’ouvrira avec une passkey : Face ID, Touch ID ou le code de ton appareil. Sur un PC, le navigateur affiche un QR code à scanner avec ton téléphone.');
+}
+const showErr=m=>{$('#err').textContent=m||''};
+
+async function finishSetup(){
+  meta.check=await seal(enc.encode('ok'));
+  await run(['meta'],'readwrite',s=>s('meta').put(meta,'main'));
+  try{await navigator.storage?.persist?.()}catch{}
+}
+async function createVault(){
+  const salt=rnd(32);
+  if(!forcePass&&window.PublicKeyCredential){
+    try{
+      const id=await createPasskey(salt);
+      if(id){meta={mode:'prf',credId:id,salt};key=await keyFromPrf(await prfSecret(meta));return finishSetup()}
+    }catch(e){
+      if(e.name==='NotAllowedError')throw new Error('Création annulée.');
+    }
+  }
+  if(!forcePass){forcePass=true;paintLock();throw new Error('Les passkeys ne peuvent pas protéger le coffre sur cet appareil. Utilise un mot de passe.')}
+  const p=$('#pass').value;
+  if(p.length<10)throw new Error('Mot de passe trop court (10 caractères minimum).');
+  meta={mode:'pass',salt};key=await keyFromPass(p,salt);return finishSetup();
+}
+async function unlockVault(){
+  key=meta.mode==='prf'?await keyFromPrf(await prfSecret(meta)):await keyFromPass($('#pass').value,meta.salt);
+  try{await unseal(meta.check)}catch{key=null;throw new Error(meta.mode==='pass'?'Mot de passe incorrect.':'Cette passkey ne correspond pas à ce coffre.')}
+}
+$('#go').onclick=async()=>{
+  showErr('');
+  try{
+    if(meta)await unlockVault();else await createVault();
+    $('#pass').value='';
+    await openVault();
+  }catch(e){showErr(e.name==='NotAllowedError'?'Vérification annulée.':e.message)}
+};
+
+/* ---------- Coffre ---------- */
+const size=n=>n<1e6?Math.max(1,Math.round(n/1e3))+' Ko':n<1e9?(n/1e6).toFixed(1)+' Mo':(n/1e9).toFixed(2)+' Go';
+async function openVault(){
+  $('#lock').hidden=true;$('#vault').hidden=false;
+  await render();
+  if(window.afterUnlock)afterUnlock();
+}
+function lockVault(){
+  if(window.endSalon)endSalon('Coffre verrouillé.');
+  key=null;closeViewer();
+  $('#vault').hidden=true;$('#lock').hidden=false;$('#list').replaceChildren();
+  paintLock();
+}
+async function render(){
+  const rows=await run(['files'],'readonly',s=>s('files').getAll());
+  const items=[];
+  for(const r of rows)items.push({id:r.id,...JSON.parse(dec.decode(await unseal(r.m)))});
+  items.sort((a,b)=>b.date-a.date);
+  $('#stats').textContent=items.length+' fichier'+(items.length>1?'s':'')+' · '+size(items.reduce((t,i)=>t+i.size,0));
+  const list=$('#list');list.replaceChildren();
+  if(!items.length){
+    const e=document.createElement('div');e.className='empty mute';e.textContent='Le coffre est vide. Ajoute ta première photo ou vidéo.';
+    list.append(e);return;
+  }
+  for(const it of items){
+    const row=document.createElement('div');row.className='row';
+    const n=document.createElement('div');n.className='name';
+    const b=document.createElement('b');b.textContent=it.name;
+    const s=document.createElement('span');s.className='mute';s.textContent=size(it.size);
+    n.append(b,s);
+    const acts=document.createElement('div');acts.className='acts';
+    const o=document.createElement('button');o.textContent='Ouvrir';o.onclick=()=>viewFile(it);
+    const d=document.createElement('button');d.className='danger';d.textContent='Supprimer';
+    d.onclick=async()=>{if(!confirm('Supprimer « '+it.name+' » définitivement ?'))return;
+      await run(['files','blobs'],'readwrite',s=>{s('blobs').delete(it.id);return s('files').delete(it.id)});render()};
+    acts.append(o,d);row.append(n,acts);list.append(row);
+  }
+}
+async function addFiles(files){
+  const busy=$('#busy');busy.hidden=false;
+  try{
+    let i=0;
+    for(const f of files){
+      busy.textContent='Chiffrement '+(++i)+'/'+files.length+' : '+f.name;
+      const chunks=[];
+      for(let o=0;o<f.size;o+=CHUNK)chunks.push(await seal(await f.slice(o,o+CHUNK).arrayBuffer()));
+      const id=crypto.randomUUID();
+      const m=await seal(enc.encode(JSON.stringify({name:f.name,type:f.type,size:f.size,date:Date.now()})));
+      await run(['blobs','files'],'readwrite',s=>{s('blobs').put({id,chunks});return s('files').put({id,m})});
+    }
+  }catch(e){alert('Ajout impossible : '+(e.name==='QuotaExceededError'?'espace insuffisant sur l’appareil.':e.message))}
+  busy.hidden=true;await render();
+}
+$('#add').onclick=()=>$('#pick').click();
+$('#pick').onchange=e=>{const f=[...e.target.files];e.target.value='';if(f.length)addFiles(f)};
+$('#lockBtn').onclick=lockVault;
+
+/* ---------- Sauvegarde : export / import (fichier .coffre, toujours chiffré) ---------- */
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function exportVault(){
+  const files=await run(['files'],'readonly',s=>s('files').getAll());
+  const parts=[],index=[];
+  for(const f of files){
+    const rec=await run(['blobs'],'readonly',s=>s('blobs').get(f.id));
+    index.push({id:f.id,m:{iv:b64(f.m.iv),ct:b64(f.m.ct)},chunks:rec.chunks.map(c=>({iv:b64(c.iv),n:c.ct.byteLength}))});
+    for(const c of rec.chunks)parts.push(c.ct);
+  }
+  const head=enc.encode(JSON.stringify({v:1,meta:{mode:meta.mode,credId:meta.credId?b64(meta.credId):null,salt:b64(meta.salt),check:{iv:b64(meta.check.iv),ct:b64(meta.check.ct)}},files:index}));
+  const len=new Uint8Array(4);new DataView(len.buffer).setUint32(0,head.length);
+  const blob=new Blob([enc.encode('COFFRE1'),len,head,...parts],{type:'application/octet-stream'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='sauvegarde-'+new Date().toISOString().slice(0,10)+'.coffre';
+  a.click();setTimeout(()=>URL.revokeObjectURL(a.href),60000);
+}
+async function importBackup(file,intoVault){
+  const top=new Uint8Array(await file.slice(0,11).arrayBuffer());
+  if(dec.decode(top.slice(0,7))!=='COFFRE1')throw new Error('Ce fichier n’est pas une sauvegarde du coffre.');
+  const hl=new DataView(top.buffer).getUint32(7);
+  const h=JSON.parse(dec.decode(await file.slice(11,11+hl).arrayBuffer()));
+  const m=h.meta;
+  const incoming={mode:m.mode,credId:m.credId?unb64(m.credId).buffer:null,salt:unb64(m.salt),check:{iv:unb64(m.check.iv),ct:unb64(m.check.ct).buffer}};
+  if(intoVault){
+    try{await unseal(incoming.check)}catch{throw new Error('Cette sauvegarde vient d’un autre coffre (autre passkey ou autre mot de passe).')}
+  }
+  let off=11+hl;
+  for(const f of h.files){
+    const chunks=[];
+    for(const c of f.chunks){chunks.push({iv:unb64(c.iv),ct:await file.slice(off,off+c.n).arrayBuffer()});off+=c.n}
+    await run(['blobs','files'],'readwrite',s=>{s('blobs').put({id:f.id,chunks});return s('files').put({id:f.id,m:{iv:unb64(f.m.iv),ct:unb64(f.m.ct).buffer}})});
+  }
+  if(!intoVault){meta=incoming;await run(['meta'],'readwrite',s=>s('meta').put(meta,'main'))}
+}
+let impInto=false;
+$('#exp').onclick=async()=>{try{await exportVault()}catch(e){alert('Export impossible : '+e.message)}};
+$('#imp').onclick=()=>{impInto=true;$('#impPick').click()};
+$('#impLock').onclick=()=>{impInto=false;$('#impPick').click()};
+$('#impPick').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{
+    await importBackup(f,impInto);
+    if(impInto)await render();
+    else{paintLock();alert('Sauvegarde importée. Déverrouille le coffre avec ta passkey ou ton mot de passe.')}
+  }catch(err){impInto?alert(err.message):showErr(err.message)}
+};
+
+/* ---------- Visionneuse ---------- */
+async function viewFile(it){
+  const rec=await run(['blobs'],'readonly',s=>s('blobs').get(it.id));
+  const parts=[];for(const c of rec.chunks)parts.push(await unseal(c));
+  viewUrl=URL.createObjectURL(new Blob(parts,{type:it.type}));
+  const stage=$('#stage');stage.replaceChildren();
+  const link=()=>{const a=document.createElement('a');a.href=viewUrl;a.download=it.name;a.textContent='Télécharger '+it.name;a.className='btn';stage.replaceChildren(a)};
+  if(it.type.startsWith('image/')){const i=document.createElement('img');i.src=viewUrl;i.alt=it.name;i.onerror=link;stage.append(i)}
+  else if(it.type.startsWith('video/')){const v=document.createElement('video');v.src=viewUrl;v.controls=true;v.playsInline=true;v.onerror=link;stage.append(v)}
+  else link();
+  $('#viewer').showModal();
+}
+function closeViewer(){
+  const v=$('#viewer');if(v.open)v.close();
+  $('#stage').replaceChildren();
+  if(viewUrl){URL.revokeObjectURL(viewUrl);viewUrl=null}
+}
+$('#closeV').onclick=closeViewer;
+$('#viewer').addEventListener('close',()=>{$('#stage').replaceChildren();if(viewUrl){URL.revokeObjectURL(viewUrl);viewUrl=null}});
+
+/* ---------- Verrouillage auto : 2 min après avoir quitté la page ---------- */
+document.addEventListener('visibilitychange',()=>{
+  clearTimeout(lockTimer);
+  if(document.hidden&&key)lockTimer=setTimeout(lockVault,120000);
+});
+
+/* ---------- Démarrage ---------- */
+(async()=>{
+  meta=await run(['meta'],'readonly',s=>s('meta').get('main'));
+  paintLock();
+})();
+</script>
+<script src="salon.js"></script>
+</body>
+</html>
