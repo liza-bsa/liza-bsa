@@ -1,5 +1,5 @@
 /* Salons d'échange : connexion directe (WebRTC) entre 2 personnes. Le serveur ne sert qu'à les mettre en relation. */
-const SIGNAL = 'wss://REMPLACE-MOI.workers.dev/ws'; // adresse de ton Worker (voir le dossier worker/)
+const SIGNAL = 'wss://liza-bsa.zetrox-l3dinodin0saur3.workers.dev/ws'; // adresse de ton Worker (voir le dossier worker/)
 const SITEKEY = '';                                  // clé Turnstile anti-robots (facultatif)
 const ICE = [{ urls: 'stun:stun.cloudflare.com:3478' }, { urls: 'stun:stun.l.google.com:19302' }];
 const b64u = u => b64(u).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
